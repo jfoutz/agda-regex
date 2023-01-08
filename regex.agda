@@ -104,3 +104,41 @@ tex5c = cancel tex5
    eh, maybe accumulator style or something. er, corecursion
    it's fine. there's nothing _wrong_
    it's just doing extra uneeded junk -}
+
+open import Agda.Builtin.List
+open import Agda.Builtin.String
+open import Data.String
+open import Data.Vec
+open import Agda.Builtin.Nat
+
+dstr : {n : Nat} -> Regex -> Vec Char n -> Regex
+dstr r [] = r
+dstr r (c ∷ s) = dstr (deriv c r) s
+
+wrap : Regex -> String  -> Regex
+wrap r s = dstr r (toVec s)
+
+
+ts1 : Regex
+ts1 = cancel (wrap (('a' ∈)*) "aaa")
+
+{- ok. vector of vectors.
+ [ s1 : [ 'a' -> s2, 'b' -> s3]
+   s2 : [ 'b' -> s3]]
+ something like that.
+ index by state number, children indexed by transition item.
+
+ this isn't a fantastic solution, but i think it's a solution
+ i can make progress with.
+ bleh.
+-}
+
+{-
+record Dfa:Set where
+  states :
+  alphabet :
+  transition :
+  start :
+  accept :
+-}
+
