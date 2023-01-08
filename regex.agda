@@ -43,19 +43,64 @@ v (¬ ε) = ∅
 v (¬ r) = {!!}
 
 
-
 deriv : Char -> Regex -> Regex
 deriv c ∅ = ∅
 deriv c ε = ∅
 deriv c (x ∈) with c == x
 ...              | true = ε
 ...              | false = ∅
-deriv c (r · s) = ((deriv c r) · s) + ((v r) · (deriv c s))
-deriv c (r *) = (deriv c r) · (r *)
-deriv c (r + s) = (deriv c r) + (deriv c s)
-deriv c (r & s) = (deriv c r) & (deriv c s)
-deriv c (¬ r) = ¬ (deriv c r)
+deriv c (r · s) = deriv c r · s + v r · deriv c s
+deriv c (r *)   = deriv c r · (r *)
+deriv c (r + s) = deriv c r + deriv c s
+deriv c (r & s) = deriv c r & deriv c s
+deriv c (¬ r) = ¬ deriv c r
 
 
 
+t1 : Regex
+t1 = deriv 'a' ('a' ∈)
+t2 : Regex
+t2 = deriv 'b' ('a' ∈)
+t3 : Regex
+t3 = deriv 'a' ('a' ∈) + ('b' ∈)
+t4 : Regex
+t4 = deriv 'a' ('a' ∈) & ('b' ∈)
 
+{- so this works, i feel sorta like there should be a simplify step at this point. ε & ∅ should probably just be ∅
+   putting a pin in that for now
+-}
+tex1 : Regex
+tex1 = deriv 'a' (('a' ∈) · (('b' ∈)*))
+tex2 : Regex
+tex2 = deriv 'b' tex1
+tex3 : Regex
+tex3 = deriv 'b' tex1
+
+tex5 : Regex
+tex5 = deriv 'a' (('a' ∈) · ('b' ∈) & ('a' ∈) · ('c' ∈))
+--  -> (ε · ('b' ∈) + ∅ · ∅) & (ε · ('c' ∈) + ∅ · ∅)
+
+cancel : Regex -> Regex
+cancel ∅ = ∅
+cancel ε = ε
+cancel (x ∈) = x ∈
+cancel (∅ · _) = ∅
+cancel (_ · ∅) = ∅
+cancel (r · s) = (cancel r) · (cancel s)
+cancel (r *) = r *
+cancel (∅ + s) = (cancel s)
+cancel (r + ∅) = (cancel r)
+cancel (r + s) = (cancel r) + (cancel s)
+cancel (_ & ∅) = ∅
+cancel (∅ & _) = ∅
+cancel (r & s) = (cancel r) & (cancel s)
+cancel (¬ r) = ¬ r
+
+tex5c : Regex
+tex5c = cancel tex5
+-- -> (ε · ('b' ∈) + ∅) & (ε · ('c' ∈) + ∅)
+{- it has already matched!
+   that's why
+   eh, maybe accumulator style or something. er, corecursion
+   it's fine. there's nothing _wrong_
+   it's just doing extra uneeded junk -}
