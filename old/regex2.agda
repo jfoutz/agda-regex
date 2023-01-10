@@ -142,3 +142,12 @@ record Dfa:Set where
   accept :
 -}
 
+open import Agda.Builtin.Sigma
+
+stuff : Regex -> List Char -> {!!} -> {!!}
+stuff r a = map (\ c -> deriv c r)
+
+
+
+
+
